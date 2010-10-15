@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HIDLib;
+using System.Threading;
+using System.Diagnostics;
 
 namespace MessageBoardLib
 {
@@ -72,36 +74,6 @@ namespace MessageBoardLib
 				packet.SetPacketData(data);
 				Write(packet);
 			}
-
-			//static byte[] packet1 = new byte[] { 0x02, 0x00, 0xef, 0xff, 0xfe, 0xef, 0xff, 0xfe };
-			//static byte[] packet2 = new byte[] { 0x02, 0x02, 0xef, 0xff, 0xfe, 0xef, 0xff, 0xfe };
-			//static byte[] packet3 = new byte[] { 0x02, 0x04, 0xef, 0xff, 0xfe, 0xef, 0xff, 0xfe };
-			//static byte[] packet4 = new byte[] { 0x02, 0x06, 0xef, 0xff, 0xfe, 0x00, 0x00, 0x00 };
-
-			//for (int i = 2; i < 8; i++)
-			//    packet1[i] = (byte)rand.Next(255);
-
-			//packet.SetPacketData(packet1);
-			//Write(packet);
-
-			//for (int i = 2; i < 8; i++)
-			//    packet2[i] = (byte)rand.Next(255);
-
-			//packet.SetPacketData(packet2);
-			//Write(packet);
-
-			//for (int i = 2; i < 8; i++)
-			//    packet3[i] = (byte)rand.Next(255);
-
-			//packet.SetPacketData(packet3);
-			//Write(packet);
-
-			//packet4[0] = brightness;
-			//for (int i = 2; i < 8; i++)
-			//    packet4[i] = (byte)rand.Next(255);
-
-			//packet.SetPacketData(packet4);
-			//Write(packet);
 		}
 
 		public void WriteScreen(MsgBoardImage image)
@@ -190,5 +162,117 @@ namespace MessageBoardLib
 			}
 			base.Dispose(bDisposing);
 		}
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public class MsgBoardAsyncDriver
+	{
+		#region Declerations
+
+		private MsgBoardView _view = null;
+
+		volatile private int _killDriverFlag = 0;
+		private MsgBoardDevice _device = null;
+		private MsgBoardImage _image = null;
+		private IMsgBoardFX _fx = null;
+
+		private Thread _backgroundThread = null;
+
+		#endregion
+		#region Initialization & Instantiation
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="image"></param>
+		/// <param name="scrollSpeed">Columns per second</param>
+		public MsgBoardAsyncDriver(MsgBoardImage image, double scrollSpeed)
+		{
+			_device = MsgBoardDevice.Create();
+
+			_fx = new InverseFX(1.75);
+
+			_view = new MsgBoardView(image, scrollSpeed, MsgBoardView.ScrollType.WRAP);
+			_image = _view.GetCurrentScreenView();
+		}
+
+		#endregion
+		#region Public Methods
+
+		public void ApplyFX(IMsgBoardFX fx)
+		{
+			_fx = fx;
+		}
+
+		public void SetSourceImage(MsgBoardImage image, double scrollSpeed)
+		{
+			_view = new MsgBoardView(image, scrollSpeed, MsgBoardView.ScrollType.WRAP);
+			_image = null;
+
+			if (_backgroundThread == null)
+				BeginDriver();
+		}
+
+		public void BeginDriver()
+		{
+			if (_device == null || _backgroundThread != null)
+				return;
+
+			_killDriverFlag = 0;
+			_backgroundThread = new Thread(new ThreadStart(this.Driver))
+			{
+				IsBackground = true,
+				Name = "MsgBoard Render Thread",
+			};
+			_backgroundThread.Start();
+		}
+
+		public void StopDriver()
+		{
+			if (_device == null)
+				return;
+
+			_killDriverFlag = 1;
+			_backgroundThread.Join();
+			_backgroundThread = null;
+		}
+
+		#endregion
+		#region Private Thread
+
+		private void Driver()
+		{
+			Stopwatch sw = Stopwatch.StartNew();
+			long curMs = sw.ElapsedTicks;
+
+			while (true)
+			{
+				if (_killDriverFlag != 0)
+					return;
+
+				long ms = sw.ElapsedMilliseconds;
+				double dt = (ms - curMs) * 0.001;
+				curMs = ms;
+
+				if (_view != null)
+				{
+					_fx.Advance(dt);
+
+					if (_image == null || _view.AdvanceScroll(dt))
+					{
+						_image = _view.GetCurrentScreenView();
+						_fx.ApplyFX(_image);
+					}
+
+					_device.WriteScreen(_image);
+				}
+
+				Thread.Sleep(50);
+			}
+		}
+
+		#endregion
 	}
 }
