@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HIDLib", ".\HIDLib\HIDLib.csproj", "{D9A89469-4FF5-4E25-AE36-B33391E7D1FB}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HIDLib", "HIDLib\HIDLib.csproj", "{D9A89469-4FF5-4E25-AE36-B33391E7D1FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", ".\ConsoleApplication1\ConsoleApplication1.csproj", "{BE361455-0A23-4C1A-B7B8-EA28A2FE1EE4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{BE361455-0A23-4C1A-B7B8-EA28A2FE1EE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBoardLib", "MessageBoardLib\MessageBoardLib.csproj", "{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,16 @@ Global
 		{BE361455-0A23-4C1A-B7B8-EA28A2FE1EE4}.Release|Mixed Platforms.Build.0 = Release|x86
 		{BE361455-0A23-4C1A-B7B8-EA28A2FE1EE4}.Release|x86.ActiveCfg = Release|x86
 		{BE361455-0A23-4C1A-B7B8-EA28A2FE1EE4}.Release|x86.Build.0 = Release|x86
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3209C0DD-4792-43BD-828F-F36EEE7BEBF7}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
