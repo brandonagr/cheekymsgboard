@@ -44,7 +44,8 @@
     <Compile Include="MsgBoardDevice.cs" />
     <Compile Include="MsgBoardFX.cs" />
     <Compile Include="MsgBoardImage.cs" />
-    <Compile Include="MsgBoardView.cs" />
+    <Compile Include="MsgBoardScreen.cs" />
+    <Compile Include="MsgBoardText.cs" />
     <Compile Include="ProfileTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

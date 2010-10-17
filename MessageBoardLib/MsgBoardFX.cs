@@ -11,7 +11,7 @@ namespace MessageBoardLib
 	public interface IMsgBoardFX
 	{
 		void Advance(double dt);
-		void ApplyFX(MsgBoardImage image);
+		void ApplyFX(MsgBoardImage image, MsgBoardDevice device);
 	}
 
 	public class InverseFX : IMsgBoardFX
@@ -45,10 +45,12 @@ namespace MessageBoardLib
 			}
 		}
 
-		public void ApplyFX(MsgBoardImage image)
+		public void ApplyFX(MsgBoardImage image, MsgBoardDevice device)
 		{
 			if (_on)
 			{
+				device.BrightnessLevel = MsgBoardDevice.Brightness.BRIGHT;
+
 				for (int y = 0; y < MsgBoardImage.Height; y++)
 				{
 					for (int x = 0; x < image.Width; x++)
@@ -57,6 +59,8 @@ namespace MessageBoardLib
 					}
 				}
 			}
+			else
+				device.BrightnessLevel = MsgBoardDevice.Brightness.DIM;
 		}
 
 		#endregion

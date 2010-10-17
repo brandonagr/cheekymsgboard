@@ -10,6 +10,8 @@ namespace MessageBoardLib
 {
 	public class MsgBoardDevice : HIDDevice
 	{
+		#region Nested Classes
+
 		public class MsgBoardPacket : OutputReport
 		{
 			/// <summary>
@@ -37,6 +39,34 @@ namespace MessageBoardLib
 			}
 		}
 
+		#endregion
+		#region Declerations
+
+		/// <summary>
+		/// How bright the LED display is
+		/// </summary>
+		public enum Brightness : byte
+		{
+			DIM = 0,
+			MEDIUM = 1,
+			BRIGHT = 2,
+		}
+
+		private Brightness _brightness = Brightness.DIM;
+
+		/// <summary>
+		/// The orientation of the device, used to correct the output if the device is upside down
+		/// </summary>
+		public enum Orientation
+		{
+			NORMAL,
+			ROTATED_180,
+		}
+
+		private Orientation _orientation = Orientation.NORMAL;
+
+		#endregion
+		#region Intialization
 
 		public MsgBoardDevice()
 		{ }
@@ -46,6 +76,8 @@ namespace MessageBoardLib
 			return FindDevice<MsgBoardDevice>(0x1D34, 0x0013);
 		}
 
+		#endregion
+		#region Public Methods
 
 		/*
 		 *  packet format as viewed on the screen:, bits are inverse 0 = on, 1 = off 
@@ -89,7 +121,7 @@ namespace MessageBoardLib
 				packet.ClearBuffer();
 
 				packet.Data[0] = 0x00;
-				packet.Data[1] = 0x01; //brightness
+				packet.Data[1] = (byte)_brightness; //brightness
 				packet.Data[2] = (byte)(i << 1); //row
 
 				//first row inside packet
@@ -98,12 +130,21 @@ namespace MessageBoardLib
 				int currentY = i << 1;
 				for (int x = 0; x < 21; x++)
 				{
-					int rotY = (MsgBoardImage.Height - currentY) - 1;
-					int rotX = (image.Width - x) - 1;
-					//int rotY = currentY;
-					//int rotX = x;
+					int imageY, imageX;
+					switch(_orientation)
+					{
+						case Orientation.ROTATED_180:
+							imageY = (MsgBoardImage.Height - currentY) - 1;
+							imageX = (image.Width - x) - 1;
+							break;
+						default:
+						case Orientation.NORMAL:
+							imageY = currentY;
+							imageX = x;
+							break;
+					}
 
-					if (!image.Get(rotY, rotX)) //turn on bit, in order to turn off the LED
+					if (!image.Get(imageY, imageX)) //turn on bit, in order to turn off the LED
 					{
 						byte turnBitOfff = (byte)(1 << currentBit);
 						packet.Data[currentByte + 1] |= turnBitOfff;
@@ -125,12 +166,21 @@ namespace MessageBoardLib
 					currentY = currentY + 1;
 					for (int x = 0; x < 21; x++)
 					{
-						int rotY = (MsgBoardImage.Height - currentY) - 1;
-						int rotX = (image.Width - x) - 1;
-						//int rotY = currentY;
-						//int rotX = x;
+						int imageY, imageX;
+						switch (_orientation)
+						{
+							case Orientation.ROTATED_180:
+								imageY = (MsgBoardImage.Height - currentY) - 1;
+								imageX = (image.Width - x) - 1;
+								break;
+							default:
+							case Orientation.NORMAL:
+								imageY = currentY;
+								imageX = x;
+								break;
+						}
 
-						if (!image.Get(rotY, rotX)) //turn on bit, in order to turn off the LED
+						if (!image.Get(imageY, imageX)) //turn on bit, in order to turn off the LED
 						{
 							byte turnBitOfff = (byte)(1 << currentBit);
 							packet.Data[currentByte + 1] |= turnBitOfff;
@@ -149,6 +199,24 @@ namespace MessageBoardLib
 			}
 		}
 
+		#endregion
+		#region Properties
+
+
+		public Brightness BrightnessLevel
+		{
+			get { return _brightness; }
+			set { _brightness = value; }
+		}
+
+		public Orientation DeviceOrientation
+		{
+			get { return _orientation; }
+			set { _orientation = value; }
+		}
+
+		#endregion
+		#region Overrides
 
 		/// <summary>
 		/// Dispose.
@@ -162,6 +230,7 @@ namespace MessageBoardLib
 			}
 			base.Dispose(bDisposing);
 		}
+		#endregion
 	}
 
 	/// <summary>
@@ -171,13 +240,13 @@ namespace MessageBoardLib
 	{
 		#region Declerations
 
-		private MsgBoardView _view = null;
-
-		volatile private int _killDriverFlag = 0;
 		private MsgBoardDevice _device = null;
-		private MsgBoardImage _image = null;
-		private IMsgBoardFX _fx = null;
 
+		private IMsgBoardScreen _screen = null; //The screen, produces images that are displayed on the device
+		private MsgBoardImage _image = null; //The current image that is being displayed on the device
+		private IMsgBoardFX _fx = null; //Any post processing FX to apply to the current _image
+
+		volatile private int _stopThreadFlag = 0;
 		private Thread _backgroundThread = null;
 
 		#endregion
@@ -188,43 +257,55 @@ namespace MessageBoardLib
 		/// </summary>
 		/// <param name="image"></param>
 		/// <param name="scrollSpeed">Columns per second</param>
-		public MsgBoardAsyncDriver(MsgBoardImage image, double scrollSpeed)
+		public MsgBoardAsyncDriver(IMsgBoardScreen screen)
 		{
 			_device = MsgBoardDevice.Create();
 
-			_fx = new InverseFX(1.75);
+			if (_device == null)
+				throw new ApplicationException("Unable to find Message board");
 
-			_view = new MsgBoardView(image, scrollSpeed, MsgBoardView.ScrollType.WRAP);
-			_image = _view.GetCurrentScreenView();
+			//_fx = new InverseFX(1.75);
+
+			_screen = screen;
+			_image = _screen.GetCurrentScreenImage();
 		}
 
 		#endregion
 		#region Public Methods
 
-		public void ApplyFX(IMsgBoardFX fx)
+		public void SetFX(IMsgBoardFX fx)
 		{
 			_fx = fx;
 		}
 
-		public void SetSourceImage(MsgBoardImage image, double scrollSpeed)
+		public void SetSource(IMsgBoardScreen screen)
 		{
-			_view = new MsgBoardView(image, scrollSpeed, MsgBoardView.ScrollType.WRAP);
-			_image = null;
+			if (screen == null && _backgroundThread != null)
+			{
+				StopDriver();
+				_screen = null;
+			}
 
-			if (_backgroundThread == null)
-				BeginDriver();
+			_screen = screen;
+			_image = _screen.GetCurrentScreenImage();
+		}
+
+		public void SetBrightness(MsgBoardDevice.Brightness level)
+		{
+			_device.BrightnessLevel = level;
 		}
 
 		public void BeginDriver()
 		{
-			if (_device == null || _backgroundThread != null)
+			if (_device == null || _backgroundThread != null || _screen == null)
 				return;
 
-			_killDriverFlag = 0;
+			_stopThreadFlag = 0;
 			_backgroundThread = new Thread(new ThreadStart(this.Driver))
 			{
 				IsBackground = true,
 				Name = "MsgBoard Render Thread",
+				Priority = ThreadPriority.AboveNormal,
 			};
 			_backgroundThread.Start();
 		}
@@ -234,7 +315,7 @@ namespace MessageBoardLib
 			if (_device == null)
 				return;
 
-			_killDriverFlag = 1;
+			_stopThreadFlag = 1;
 			_backgroundThread.Join();
 			_backgroundThread = null;
 		}
@@ -249,27 +330,26 @@ namespace MessageBoardLib
 
 			while (true)
 			{
-				if (_killDriverFlag != 0)
+				if (_stopThreadFlag != 0)
 					return;
 
 				long ms = sw.ElapsedMilliseconds;
 				double dt = (ms - curMs) * 0.001;
 				curMs = ms;
 
-				if (_view != null)
-				{
+				if (_fx != null)
 					_fx.Advance(dt);
 
-					if (_image == null || _view.AdvanceScroll(dt))
-					{
-						_image = _view.GetCurrentScreenView();
-						_fx.ApplyFX(_image);
-					}
+				if (_screen.Advance(dt))
+				{
+					_image = _screen.GetCurrentScreenImage();
 
-					_device.WriteScreen(_image);
+					if (_fx != null)
+						_fx.ApplyFX(_image, _device);
 				}
+				_device.WriteScreen(_image);
 
-				Thread.Sleep(50);
+				Thread.Sleep(30);
 			}
 		}
 

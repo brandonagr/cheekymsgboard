@@ -12,20 +12,29 @@ namespace ConsoleApplication1
 	{
 		static void Main(string[] args)
 		{
+			//MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new ImageScroller(MsgBoardText.Render("ERRORS"), 20.0, ImageScroller.ScrollType.WRAP));
+			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new Clock());
 
-			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(MsgBoardText.Render("ERRORS"), 20.0);
+			msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
 
 			msgBoard.BeginDriver();
 
 
+			//while (true)
+			//{
+			//    Thread.Sleep(1000);
+			//    msgBoard.SetBrightness(MsgBoardDevice.Brightness.BRIGHT);
+			//    Thread.Sleep(1000);
+			//    msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
+			//}
 
-			Thread.Sleep(5000);
+			//Thread.Sleep(5000);
 
 
-			msgBoard.StopDriver();
+			//msgBoard.StopDriver();
+			//msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
 
-
-			Thread.Sleep(1000);
+			//Thread.Sleep(1000);
 
 
 
@@ -65,7 +74,12 @@ namespace ConsoleApplication1
 				if (string.IsNullOrEmpty(message))
 					break;
 
-				msgBoard.SetSourceImage(MsgBoardText.Render(message), 20.0);
+				msgBoard.SetSource(new ImageScroller(MsgBoardText.Render(message), 20.0, ImageScroller.ScrollType.WRAP));
+
+				if (message.Contains('!'))
+					msgBoard.SetFX(new InverseFX(2.0));
+				else
+					msgBoard.SetFX(null);
 			}
 
 
