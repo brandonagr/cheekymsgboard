@@ -328,28 +328,36 @@ namespace MessageBoardLib
 			Stopwatch sw = Stopwatch.StartNew();
 			long curMs = sw.ElapsedTicks;
 
-			while (true)
+			try
 			{
-				if (_stopThreadFlag != 0)
-					return;
-
-				long ms = sw.ElapsedMilliseconds;
-				double dt = (ms - curMs) * 0.001;
-				curMs = ms;
-
-				if (_fx != null)
-					_fx.Advance(dt);
-
-				if (_screen.Advance(dt))
+				while (true)
 				{
-					_image = _screen.GetCurrentScreenImage();
+					if (_stopThreadFlag != 0)
+						return;
+
+					long ms = sw.ElapsedMilliseconds;
+					double dt = (ms - curMs) * 0.001;
+					curMs = ms;
 
 					if (_fx != null)
-						_fx.ApplyFX(_image, _device);
-				}
-				_device.WriteScreen(_image);
+						_fx.Advance(dt);
 
-				Thread.Sleep(30);
+					if (_screen.Advance(dt))
+					{
+						_image = _screen.GetCurrentScreenImage();
+
+						if (_fx != null)
+							_fx.ApplyFX(_image, _device);
+					}
+					_device.WriteScreen(_image);
+
+					Thread.Sleep(30);
+				}
+			}
+			catch (HIDDeviceException ex)
+			{
+				_backgroundThread = null;
+				_device = null;
 			}
 		}
 

@@ -13,7 +13,8 @@ namespace ConsoleApplication1
 		static void Main(string[] args)
 		{
 			//MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new ImageScroller(MsgBoardText.Render("ERRORS"), 20.0, ImageScroller.ScrollType.WRAP));
-			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new Clock());
+			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new RandomDot());
+			
 
 			msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
 
