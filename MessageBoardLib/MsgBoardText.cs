@@ -25,10 +25,10 @@ namespace MessageBoardLib
 			if (_imageData != null)
 				return;
 
-			_imageData = (Bitmap)Image.FromFile(@"Fonts\small_font.bmp");
+			_imageData = (Bitmap)Image.FromFile(@"Fonts\med_font.bmp");
 			_imageMetaData = new Dictionary<char, Tuple<int, int>>();
 
-			using (StreamReader reader = new StreamReader(File.OpenRead(@"Fonts\small_font_map.txt")))
+			using (StreamReader reader = new StreamReader(File.OpenRead(@"Fonts\med_font_map.txt")))
 			{
 				reader.ReadLine(); //eat header line
 
@@ -77,7 +77,7 @@ namespace MessageBoardLib
 
 			MsgBoardImage image = new MsgBoardImage( ((forceWidth > 0) ? forceWidth: totalWidth) );
 
-			int curPos = 1;
+			int curPos = 0;
 			foreach (var posData in renderText)
 			{
 				if (!RenderCharacter(curPos, posData, image))
@@ -98,16 +98,19 @@ namespace MessageBoardLib
 		/// <returns>False if no more characters can fit in this image</returns>
 		private static bool RenderCharacter(int xPos, Tuple<int, int> charData, MsgBoardImage image)
 		{
-			for (int y = 0; y < 6; y++)
+			lock (_imageData)
 			{
-				for (int xOffset = 0; xOffset < charData.Item2; xOffset++)
+				for (int y = 0; y < 7; y++)
 				{
-					if (image.Width <= xPos + xOffset)
-						return false;
+					for (int xOffset = 0; xOffset < charData.Item2; xOffset++)
+					{
+						if (image.Width <= xPos + xOffset)
+							return false;
 
-					Color pixel = _imageData.GetPixel(charData.Item1 + xOffset, y);
-					bool pixelOn = (pixel.R == 0 && pixel.G == 0 && pixel.B == 0);
-					image.Set(y + 1, xPos + xOffset, pixelOn);
+						Color pixel = _imageData.GetPixel(charData.Item1 + xOffset, y);
+						bool pixelOn = (pixel.R == 0 && pixel.G == 0 && pixel.B == 0);
+						image.Set(y, xPos + xOffset, pixelOn);
+					}
 				}
 			}
 

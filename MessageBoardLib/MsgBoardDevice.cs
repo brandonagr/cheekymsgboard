@@ -301,7 +301,7 @@ namespace MessageBoardLib
 				return;
 
 			_stopThreadFlag = 0;
-			_backgroundThread = new Thread(new ThreadStart(this.Driver))
+			_backgroundThread = new Thread(this.Driver)
 			{
 				IsBackground = true,
 				Name = "MsgBoard Render Thread",
@@ -327,6 +327,7 @@ namespace MessageBoardLib
 		{
 			Stopwatch sw = Stopwatch.StartNew();
 			long curMs = sw.ElapsedTicks;
+			double timeSinceDisplayWrite = 0;
 
 			try
 			{
@@ -338,6 +339,7 @@ namespace MessageBoardLib
 					long ms = sw.ElapsedMilliseconds;
 					double dt = (ms - curMs) * 0.001;
 					curMs = ms;
+					timeSinceDisplayWrite += dt;
 
 					if (_fx != null)
 						_fx.Advance(dt);
@@ -348,10 +350,18 @@ namespace MessageBoardLib
 
 						if (_fx != null)
 							_fx.ApplyFX(_image, _device);
-					}
-					_device.WriteScreen(_image);
 
-					Thread.Sleep(30);
+						timeSinceDisplayWrite = 1.0;
+					}
+
+					// write if it has been enough time since last write
+					if (timeSinceDisplayWrite > 0.385) // 410 (max time to go between refreshes) - 25 ( time of the sleep below)
+					{
+						_device.WriteScreen(_image);
+						timeSinceDisplayWrite = 0;
+					}
+
+					Thread.Sleep(25);
 				}
 			}
 			catch (HIDDeviceException ex)

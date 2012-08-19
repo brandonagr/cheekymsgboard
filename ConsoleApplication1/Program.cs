@@ -13,7 +13,7 @@ namespace ConsoleApplication1
 		static void Main(string[] args)
 		{
 			//MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new ImageScroller(MsgBoardText.Render("ERRORS"), 20.0, ImageScroller.ScrollType.WRAP));
-			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new RandomDot());
+			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new CountUp(null));
 			
 
 			msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
@@ -75,7 +75,7 @@ namespace ConsoleApplication1
 				if (string.IsNullOrEmpty(message))
 					break;
 
-				msgBoard.SetSource(new ImageScroller(MsgBoardText.Render(message), 20.0, ImageScroller.ScrollType.WRAP));
+				msgBoard.SetSource(new ImageScroller(MsgBoardText.Render(message), 21.0, ImageScroller.ScrollType.WRAP));
 
 				if (message.Contains('!'))
 					msgBoard.SetFX(new InverseFX(2.0));

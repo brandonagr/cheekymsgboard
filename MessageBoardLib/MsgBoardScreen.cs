@@ -22,6 +22,58 @@ namespace MessageBoardLib
 		MsgBoardImage GetCurrentScreenImage();
 	}
 
+	/// <summary>
+	/// A view of an image that doesn't move, just clips it to the available space
+	/// </summary>
+	public class ImageDisplay : IMsgBoardScreen
+	{
+		#region Declarations
+
+		bool displayedOnce = false;
+		MsgBoardImage _displayImage;
+
+		#endregion
+		#region Initialization & Instantiation
+
+		public ImageDisplay(MsgBoardImage sourceImage)
+		{
+			_displayImage = new MsgBoardImage(21);
+
+			for (int y = 0; y < MsgBoardImage.Height; y++)
+			{
+				for (int x = 0; x < _displayImage.Width; x++)
+				{
+					if (x < 0 || x >= sourceImage.Width)
+						_displayImage.Set(y, x, false);
+					else
+						_displayImage.Set(y, x, sourceImage.Get(y, x));
+				}
+			}
+		}
+
+		#endregion
+		#region IMsgBoardScreen Members
+
+		public bool Advance(double dt)
+		{
+			if (displayedOnce)
+			{
+				return false;
+			}
+			else
+			{
+				displayedOnce = true;
+				return true;
+			}
+		}
+
+		public MsgBoardImage GetCurrentScreenImage()
+		{
+			return _displayImage;
+		}
+
+		#endregion
+	}
 
 	/// <summary>
 	/// A view of an image that is displayed on the MessageBoard itself, this handles scrolling a large image across the viewable surface
@@ -82,7 +134,7 @@ namespace MessageBoardLib
 				newX = 0;
 			}
 
-			return (currentX != newX) && (newX < (_sourceImage.Width));
+			return (currentX != newX) && (newX <= (_sourceImage.Width));
 		}
 
 		public MsgBoardImage GetCurrentScreenImage()
@@ -104,6 +156,66 @@ namespace MessageBoardLib
 			}
 
 			return image;
+		}
+
+		#endregion
+	}
+
+	/// <summary>
+	/// Display a clock on the screen, showing the time to the nearest seccond
+	/// </summary>
+	public class CountUp : IMsgBoardScreen
+	{
+		#region Declerations
+
+		MsgBoardAsyncDriver _board;
+		double _seconds;
+		string _lastDisplayed = "0.0";
+
+		#endregion
+		#region Initialization & Instantiation
+
+		public CountUp(MsgBoardAsyncDriver board, double startingSeconds = 0.0)
+		{
+			_board = board;
+			_seconds = startingSeconds;
+		}
+
+		#endregion
+		#region Implement IMsgBoardScreen Methods
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="dt"></param>
+		/// <returns></returns>
+		public bool Advance(double dt)
+		{
+			if (_seconds < 100)
+				_seconds += 0.1;
+
+			if (_seconds > 17.5 && _board != null)
+			{
+				_board.SetFX(new InverseFX(0.4));
+				_board = null;
+			}
+
+			var displayString = string.Format("{0:0.0}", _seconds);
+
+			if (displayString != _lastDisplayed)
+			{
+				_lastDisplayed = displayString;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public MsgBoardImage GetCurrentScreenImage()
+		{
+			return MsgBoardText.Render(_lastDisplayed, 21);
 		}
 
 		#endregion
@@ -183,7 +295,7 @@ namespace MessageBoardLib
 		#endregion
 		#region Private Methods
 
-		private void GenerateRandomDirection(double speed = 7.0)
+		private void GenerateRandomDirection(double speed = 15.0)//0.125)
 		{
 			double dir = new Random((int)DateTime.Now.Ticks).NextDouble() * 360.0;
 
@@ -203,7 +315,7 @@ namespace MessageBoardLib
 		{
 			_changeDirCounter += dt;
 
-			if (_changeDirCounter > 5)
+			if (_changeDirCounter > 90.0)
 			{
 				GenerateRandomDirection();
 				_changeDirCounter = 0.0;
@@ -278,7 +390,7 @@ namespace MessageBoardLib
 		#endregion
 		#region Private Methods
 
-		private void GenerateRandomPosition(double speed = 7.0)
+		private void GenerateRandomPosition()
 		{
 			Random rand = new Random((int)DateTime.Now.Ticks);//.NextDouble() * 360.0;
 
