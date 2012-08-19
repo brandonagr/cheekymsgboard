@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MessageBoardLib
+namespace MessageBoardLib.FX
 {
 	/// <summary>
-	/// A post processing effect applied to a screen size image before it is shown on the screen
+	/// Cause the screen to invert what is on / off
 	/// </summary>
-	public interface IMsgBoardFX
-	{
-		void Advance(double dt);
-		void ApplyFX(MsgBoardImage image, MsgBoardDevice device);
-	}
-
-	public class InverseFX : IMsgBoardFX
+	public class Inverse : IMsgBoardFX
 	{
 		#region Declerations
 
@@ -26,7 +20,7 @@ namespace MessageBoardLib
 		#endregion
 		#region Initialization & Instantiation
 
-		public InverseFX(double limit)
+		public Inverse(double limit)
 		{
 			_limit = limit;
 		}

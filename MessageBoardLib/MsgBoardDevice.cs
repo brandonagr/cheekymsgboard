@@ -364,7 +364,7 @@ namespace MessageBoardLib
 					Thread.Sleep(25);
 				}
 			}
-			catch (HIDDeviceException ex)
+			catch (HIDDeviceException)
 			{
 				_backgroundThread = null;
 				_device = null;

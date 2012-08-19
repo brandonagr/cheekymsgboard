@@ -5,6 +5,8 @@ using System.Text;
 using MessageBoardLib;
 using System.Threading;
 using System.Diagnostics;
+using MessageBoardLib.Screens;
+using MessageBoardLib.FX;
 
 namespace ConsoleApplication1
 {
@@ -14,6 +16,7 @@ namespace ConsoleApplication1
 		{
 			//MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new ImageScroller(MsgBoardText.Render("ERRORS"), 20.0, ImageScroller.ScrollType.WRAP));
 			MsgBoardAsyncDriver msgBoard = new MsgBoardAsyncDriver(new CountUp(null));
+			msgBoard.SetSource(new CountUp(msgBoard));
 			
 
 			msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
@@ -78,7 +81,7 @@ namespace ConsoleApplication1
 				msgBoard.SetSource(new ImageScroller(MsgBoardText.Render(message), 21.0, ImageScroller.ScrollType.WRAP));
 
 				if (message.Contains('!'))
-					msgBoard.SetFX(new InverseFX(2.0));
+					msgBoard.SetFX(new Inverse(2.0));
 				else
 					msgBoard.SetFX(null);
 			}
