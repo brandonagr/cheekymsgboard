@@ -354,8 +354,8 @@ namespace MessageBoardLib
 						timeSinceDisplayWrite = 1.0;
 					}
 
-					// write if it has been enough time since last write
-					if (timeSinceDisplayWrite > 0.385) // 410 (max time to go between refreshes) - 25 ( time of the sleep below)
+					// write if it has been enough time since last write, roughly 400ms is the max time to get between write without the screen going dark
+					if (timeSinceDisplayWrite > 0.325) 
 					{
 						_device.WriteScreen(_image);
 						timeSinceDisplayWrite = 0;

@@ -32,6 +32,25 @@ namespace MessageBoardLib
 		#endregion
 		#region Public Methods
 
+		/// <summary>
+		/// Clear all of the bits in this range
+		/// </summary>
+		/// <param name="beginXInclusive"></param>
+		/// <param name="endXInclusive"></param>
+		public void Clear(int beginXInclusive, int endXInclusive)
+		{
+			for (int x = beginXInclusive; x <= endXInclusive; x++)
+			{
+				_data[0, x] = false;
+				_data[1, x] = false;
+				_data[2, x] = false;
+				_data[3, x] = false;
+				_data[4, x] = false;
+				_data[5, x] = false;
+				_data[6, x] = false;
+			}
+		}
+
 		public void Set(int y, int x, bool on)
 		{
 			if (y < 0 || y >= Height || x < 0 || x > _width)

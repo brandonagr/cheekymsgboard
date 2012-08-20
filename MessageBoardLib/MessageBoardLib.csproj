@@ -51,6 +51,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Screens\BouncingDot.cs" />
     <Compile Include="Screens\Clock.cs" />
+    <Compile Include="Screens\AnimatedClock.cs" />
     <Compile Include="Screens\CountUp.cs" />
     <Compile Include="Screens\ImageDisplay.cs" />
     <Compile Include="Screens\ImageScroller.cs" />

@@ -14,17 +14,21 @@ namespace MessageBoardLib
 	{
 		#region Declerations
 
-		private static Bitmap _imageData = null;
-		private static Dictionary<char, Tuple<int, int>> _imageMetaData = null;
+		/// <summary>
+		/// Font bitmap
+		/// </summary>
+		static Bitmap _imageData = null;
+
+		/// <summary>
+		/// Lookup of supported characters, tuple is posX in font bitmap, Width of character
+		/// </summary>
+		static Dictionary<char, Tuple<int, int>> _imageMetaData = null;
 
 		#endregion
 		#region Initialization & Instaitation
 
-		private static void Initialize()
+		static MsgBoardText()
 		{
-			if (_imageData != null)
-				return;
-
 			_imageData = (Bitmap)Image.FromFile(@"Fonts\med_font.bmp");
 			_imageMetaData = new Dictionary<char, Tuple<int, int>>();
 
@@ -50,6 +54,28 @@ namespace MessageBoardLib
 		#region Public Methods
 
 		/// <summary>
+		/// Render a single character at the specified location
+		/// </summary>
+		/// <param name="character"></param>
+		/// <param name="y"></param>
+		/// <param name="x"></param>
+		/// <param name="forceWidth">If non zero, aligns the character to the right of the specified width</param>
+		/// <param name="image"></param>
+		internal static void Render(char character, int y, int x, int forceWidth, MsgBoardImage image)
+		{
+			Tuple<int, int> charData;
+			if (!_imageMetaData.TryGetValue(character, out charData))
+				return;
+
+			if (forceWidth != 0)
+			{
+				x += forceWidth - charData.Item2;
+			}
+
+			RenderCharacter(x, charData, image, y);
+		}
+
+		/// <summary>
 		/// Generate an Image from a given string text
 		/// </summary>
 		/// <param name="text"></param>
@@ -57,8 +83,6 @@ namespace MessageBoardLib
 		/// <returns></returns>
 		public static MsgBoardImage Render(string text, int forceWidth = 0)
 		{
-			Initialize();
-
 			if (string.IsNullOrEmpty(text))
 				throw new ArgumentOutOfRangeException("There is nothing to render!");
 
@@ -96,12 +120,17 @@ namespace MessageBoardLib
 		/// <param name="charData"></param>
 		/// <param name="image"></param>
 		/// <returns>False if no more characters can fit in this image</returns>
-		private static bool RenderCharacter(int xPos, Tuple<int, int> charData, MsgBoardImage image)
+		private static bool RenderCharacter(int xPos, Tuple<int, int> charData, MsgBoardImage image, int yOffset = 0)
 		{
 			lock (_imageData)
 			{
 				for (int y = 0; y < 7; y++)
 				{
+					int renderY = y + yOffset;
+
+					if (renderY < 0 || renderY > 6)
+						continue;
+
 					for (int xOffset = 0; xOffset < charData.Item2; xOffset++)
 					{
 						if (image.Width <= xPos + xOffset)
@@ -109,7 +138,7 @@ namespace MessageBoardLib
 
 						Color pixel = _imageData.GetPixel(charData.Item1 + xOffset, y);
 						bool pixelOn = (pixel.R == 0 && pixel.G == 0 && pixel.B == 0);
-						image.Set(y, xPos + xOffset, pixelOn);
+						image.Set(renderY, xPos + xOffset, pixelOn);
 					}
 				}
 			}

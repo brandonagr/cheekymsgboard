@@ -43,7 +43,7 @@ namespace MessageBoardService
 		{
 			Environment.CurrentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-			_msgBoard = new MsgBoardAsyncDriver(new Clock());
+			_msgBoard = new MsgBoardAsyncDriver(new AnimatedClock());
 
 			_msgBoard.SetBrightness(MsgBoardDevice.Brightness.DIM);
 			_msgBoard.BeginDriver();
